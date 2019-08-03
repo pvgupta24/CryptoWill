@@ -18,6 +18,24 @@ class IndexView(View):
         return render(request, template_name)
 
 
+class AboutView(View):
+    """
+    About CryptoWill page
+    """
+    def get(self, request):
+        template_name = "about.html"
+        return render(request, template_name)
+
+
+class ContactView(View):
+    """
+    Contact CryptoWill team to signup on platform
+    """
+    def get(self, request):
+        template_name = "contact.html"
+        return render(request, template_name)
+
+
 class AddKeyView(View):
     """
     Alice secures private key.
@@ -36,13 +54,6 @@ class AddKeyView(View):
         form = SecretForm(request.POST)
         if form.is_validate():
             template_name = "add-kin.html"
-
-            # # generate alice's Nucypher keys as below
-            # # Todo: Store them to db table UserSecret with FK user
-            # alices_private_key = keys.UmbralPrivateKey.gen_key()
-            # alices_public_key = alices_private_key.get_pubkey()
-            # alices_signing_key = keys.UmbralPrivateKey.gen_key()
-            # alices_verifying_key = alices_signing_key.get_pubkey()
 
             # Do some Nucypher stuff and save those nucypher keys to db
             hash = form.POST.get('alice_private_key')
