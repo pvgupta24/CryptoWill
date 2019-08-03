@@ -32,10 +32,10 @@ class AddKeyView(View):
         return render(request, template_name, context)
 
     def post(self, request):
-        template_name = "signup.html"
+        template_name = "add-key.html"
         form = SecretForm(request.POST)
         if form.is_validate():
-            template_name = "roll.html"
+            template_name = "add-kin.html"
 
             # # generate alice's Nucypher keys as below
             # # Todo: Store them to db table UserSecret with FK user
@@ -79,7 +79,7 @@ class AddKinView(View):
     """
     def post(self, request):
         # Not doing anything with Nucypher here. Just store and move.
-        template_name = 'rolls.html'
+        template_name = 'add-kin.html'
         form = UserNextKinForm(request.POST)
         if form.is_valid():
             template_name = 'index.html'
@@ -102,11 +102,11 @@ class GrantView(View):
     # send mail to bob with the link to access hash IPFS data
 
     def get(self, request):
-        template_name = "delegate.html"
+        template_name = "grant.html"
         return render(request, template_name)
 
     def post(self, request):
-        template_name = "delegate.html"
+        template_name = "grant.html"
         # ToDo: Get label for this user
         label = ''
         payload = {
@@ -131,7 +131,7 @@ class DecryptView(View):
     Only once! It can be requested only once and also decrypted only once.
     """
     def get(self, request):
-        template_name = "decrypt_page.html"
+        template_name = "decrypt-key.html"
         # ToDo: get the hash file and decrypt it with Nucypher.
         # Send secret back to Bob without storing it anywhere
         policy_encrypting_key = ''

@@ -22,13 +22,12 @@ from nuwill.views import IndexView
 
 urlpatterns = [
     path('', IndexView.as_view(), name='index'),
-    path('admin/', admin.site.urls),
+    path('nuwill-admin/', admin.site.urls),
     path('nuwill/', include(urls.urlpatterns))
 ]
 
 if settings.DEBUG:
-    print("hello world")
     from django.conf.urls.static import static
 
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_URL)
-
+    urlpatterns += static(settings.STATIC_URL,
+                          document_root=settings.STATIC_URL)
