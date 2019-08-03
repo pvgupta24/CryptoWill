@@ -1,4 +1,3 @@
-import json
 import requests
 
 from django.shortcuts import render
@@ -7,7 +6,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 from .forms import SecretForm, UserNextKinForm
-
+from .models import UserSecret, UserNextKin
+from .utils import generate_word
 
 class IndexView(View):
     """
@@ -43,7 +43,7 @@ class AddKeyView(View):
     """
     def get(self, request):
         form = SecretForm()
-        template_name = "signup.html"
+        template_name = "add-key.html"
         context = {
             'form': form
         }
@@ -52,33 +52,41 @@ class AddKeyView(View):
     def post(self, request):
         template_name = "add-key.html"
         form = SecretForm(request.POST)
-        if form.is_validate():
+        if form.is_valid():
             template_name = "add-kin.html"
 
-            # Do some Nucypher stuff and save those nucypher keys to db
-            hash = form.POST.get('alice_private_key')
+            private_key = form.data['alice_private_key']
 
             # Generate Policy and Store policy_encryption_key to db UserSecret as well
-            label = 'name'  # random name here generating from a-z 5-7 character
+            label = generate_word(5)
             res = requests.post('http://127.0.0.1:8151/derive_policy_encrypting_key/'+label)
-            data = res.content
-            policy_encrypting_key = data.result.policy_encrypting_key
+            data = res.json()
+
+            policy_encrypting_key = data['result'].get('policy_encrypting_key')
 
             # alice's private key encrypted with nucypher, Not saving to db
             # Enrico encryption here. Great work Enrico.
             payload = {
-                'message': hash
+                'message': private_key
             }
-            res1 = requests.post('127.0.0.1:5000/encrypt_message', data=payload)
-            data = res1.content
-            alice_encrypted_private_key = data.result.message_kit
+            res1 = requests.post('http://127.0.0.1:5000/encrypt_message', json=payload)
+
+            data = res1.json()
+
+            message_kit = data['result'].get('message_kit')
 
             # Store MessageKit and label into UserSecret model
+            UserSecret.objects.create(
+                user=request.user,
+                label=label,
+                policy_encrypting_key=policy_encrypting_key,
+                message_kit=message_kit
+            )
 
-            form = UserNextKinForm(request.form)
+            form = UserNextKinForm()
             context = {
                 'form': form,
-                'alice_encrypted_key': alice_encrypted_private_key
+                'alice_encrypted_key': message_kit
             }
             return render(request, template_name, context)
         return render(request, template_name, form=form)
@@ -95,7 +103,15 @@ class AddKinView(View):
         if form.is_valid():
             template_name = 'index.html'
             form.save()  # save bob's details to db for given user
-            return render(request, template_name)
+            context = {
+                'message': "Congratulations! We have added your kin's details. \
+                            Now we'll send you periodically email. Make sure \
+                            to click on the link provided in the email to \
+                            avoid granting access to your kin. If you fail so \
+                            clicking on the link, we'll grant access to your \
+                            kin and you kin will able to decrypt the message."
+            }
+            return render(request, template_name, context)
 
         context = {
             "form": form
@@ -128,11 +144,11 @@ class GrantView(View):
             "expiration" : "2020-11-11T11:11:11",
             "bob_verifying_key": settings.BOB_VERIFYING_KEY
         }
-        res1 = requests.post('localhost:8151/grant', data=payload)
-        data = res1.content
+        res1 = requests.post('http://localhost:8151/grant', data=payload)
+        data = res1.json()
         # ToDo: Store this keys in the DB and will be used to decrypt the message
-        policy_encrypting_key = data.policy_encrypting_key
-        alice_verifying_key = data.alice_verifying_key
+        policy_encrypting_key = data['policy_encrypting_key']
+        alice_verifying_key = data['alice_verifying_key']
         return render(request, template_name)
 
 
@@ -142,6 +158,10 @@ class DecryptView(View):
     Only once! It can be requested only once and also decrypted only once.
     """
     def get(self, request):
+        template_name = "decrypt-key.html"
+        return render(request, template_name)
+
+    def post(self, request):
         template_name = "decrypt-key.html"
         # ToDo: get the hash file and decrypt it with Nucypher.
         # Send secret back to Bob without storing it anywhere

@@ -5,6 +5,7 @@ class UserSecret(models.Model):
     policy_encrypting_key = models.CharField("Alice policy Privacy encryption key", 
                                              max_length=100)
     label = models.CharField("Policy Label to identify", max_length=10)
+    # Tobe removed in the next release and use IPFS
     message_kit = models.TextField("MessageKit")
 
     class Meta:
