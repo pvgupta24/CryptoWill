@@ -16,3 +16,20 @@ Decentralised application made during ETHIndia 2.0
 
 ## References
 > [Truffle basics](https://www.trufflesuite.com/boxes/pet-shop)
+
+
+# Running Django Backend App
+
+`cd backend`
+
+* Install dependencies
+
+> `pip install -r requirements.txt`
+
+* Create local settings by copying example-production.py
+
+> `cp example-production.py local.py`
+
+* Run server
+
+> `python manage.py runserver`
