@@ -7,7 +7,7 @@ from django.views import View
 from umbral import pre, keys, signing, params
 from umbral import  config as uconfig
 
-from .forms import SecretForm
+from .forms import SecretForm, UserNextKinForm
 
 
 class IndexView(View):
@@ -42,10 +42,16 @@ class SignupView(View):
         template_name = "signup.html"
         form = SecretForm(request.form)
         if form.is_validate():
-            # Do some Nucypher stuff
             template_name = "roll.html"
-            pass
-            return render(request, template_name, form=form)
+            # Do some Nucypher stuff and save those nucypher keys to db            
+            # alice's private key encrypted with nucypher, Not saving to db
+            alice_encrypted_private_key = ''
+            form = UserNextKinForm(request.form)
+            context = {
+                'form': form,
+                'alice_encrypted_key': alice_encrypted_private_key
+            }
+            return render(request, template_name, context)
         return render(request, template_name, form=form)
 
 
@@ -53,7 +59,15 @@ class RollView(View):
     """
     Alice submit's next of keen's email and public-key GET page
     """
-    pass
+    def post(self, request):
+        # Not doing anything with Nucypher here. Just store and move.
+        template_name = 'rolls.html'
+        form = UserNextKinForm(request.form)
+        if form.is_valid():
+            template_name = 'index.html'
+            form.save()  # save bob's details to db for given user
+            return render(request, template_name)
+        return render(request, template_name, form=form)
 
 
 class DelegateView(View):
