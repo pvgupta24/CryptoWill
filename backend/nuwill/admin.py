@@ -1,3 +1,6 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import UserNextKin, UserSecret
+
+admin.site.register(UserSecret)
+admin.site.register(UserNextKin)
