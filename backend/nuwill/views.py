@@ -5,6 +5,7 @@ import requests
 from django.shortcuts import render
 from django.views import View
 from django.core.mail import send_mail
+from django.conf import settings
 
 from umbral import pre, keys, signing, params
 from umbral import  config as uconfig
@@ -49,29 +50,32 @@ class SignupView(View):
         if form.is_validate():
             template_name = "roll.html"
 
-            # generate alice's Nucypher keys as below
-            # Todo: Store them to db table UserSecret with FK user
-            alices_private_key = keys.UmbralPrivateKey.gen_key()
-            alices_public_key = alices_private_key.get_pubkey()
-            alices_signing_key = keys.UmbralPrivateKey.gen_key()
-            alices_verifying_key = alices_signing_key.get_pubkey()
+            # # generate alice's Nucypher keys as below
+            # # Todo: Store them to db table UserSecret with FK user
+            # alices_private_key = keys.UmbralPrivateKey.gen_key()
+            # alices_public_key = alices_private_key.get_pubkey()
+            # alices_signing_key = keys.UmbralPrivateKey.gen_key()
+            # alices_verifying_key = alices_signing_key.get_pubkey()
 
             # Do some Nucypher stuff and save those nucypher keys to db
-            hash = form.data.alice_private_key
-
-            # alice's private key encrypted with nucypher, Not saving to db
-            # Enrico encryption here. Great work Enrico.
-            alice_encrypted_private_key, capsule = pre.encrypt(alices_public_key, hash)
+            hash = form.POST.get('alice_private_key')
 
             # Generate Policy and Store policy_encryption_key to db UserSecret as well
             label = 'name'  # random name here generating from a-z 5-7 character
-
             res = requests.post('http://127.0.0.1:8151/derive_policy_encrypting_key/'+label)
             data = res.content
             policy_encrypting_key = data.result.policy_encrypting_key
 
-            # Store capsule/MessageKit and label into UserSecret model as well
-            # ToDo: here
+            # alice's private key encrypted with nucypher, Not saving to db
+            # Enrico encryption here. Great work Enrico.
+            payload = {
+                'message': hash
+            }
+            res1 = requests.post('127.0.0.1:5000/encrypt_message', data=payload)
+            data = res1.content
+            alice_encrypted_private_key = data.result.message_kit
+
+            # Store MessageKit and label into UserSecret model
 
             form = UserNextKinForm(request.form)
             context = {
@@ -89,12 +93,16 @@ class RollView(View):
     def post(self, request):
         # Not doing anything with Nucypher here. Just store and move.
         template_name = 'rolls.html'
-        form = UserNextKinForm(request.form)
+        form = UserNextKinForm(request.POST)
         if form.is_valid():
             template_name = 'index.html'
             form.save()  # save bob's details to db for given user
             return render(request, template_name)
-        return render(request, template_name, form=form)
+
+        context = {
+            "form": form
+        }
+        return render(request, template_name, context)
 
 
 class DelegateView(View):
@@ -110,6 +118,24 @@ class DelegateView(View):
         template_name = "delegate.html"
         return render(request, template_name)
 
+    def post(self, request):
+        template_name = "delegate.html"
+        # ToDo: Get label for this user
+        label = ''
+        payload = {
+            "bob_encrypting_key": settings.BOB_ENCRYPTING_KEY,
+            "label": label,
+            "m": 1,
+            "n": 1,
+            "expiration" : "2020-11-11T11:11:11",
+            "bob_verifying_key": settings.BOB_VERIFYING_KEY
+        }
+        res1 = requests.post('localhost:8151/grant', data=payload)
+        data = res1.content
+        # ToDo: Store this keys in the DB and will be used to decrypt the message
+        policy_encrypting_key = data.policy_encrypting_key
+        alice_verifying_key = data.alice_verifying_key
+        return render(request, template_name)
 
 
 class DecryptView(View):
@@ -119,16 +145,28 @@ class DecryptView(View):
     """
     def get(self, request):
         template_name = "decrypt_page.html"
-        # get the hash file and decrypt it with Nucypher.
+        # ToDo: get the hash file and decrypt it with Nucypher.
         # Send secret back to Bob without storing it anywhere
-        return render(request, template_name)
+        policy_encrypting_key = ''
+        alice_verifying_key = ''
+        label = ''
+        message_kit = ''
 
-
-# class StoreView(View):
-#     """
-#     Alice submit's next of kin's email, public-key and IPFS hash GET page
-#     """
-#     pass
+        payload = {
+            "policy_encrypting_key": policy_encrypting_key,
+            "alice_verifying_key": alice_verifying_key,
+            "label": label,
+            "message_kit": message_kit
+        }
+        res1 = requests.post('localhost:4000/retrieve', data=payload)
+        data = res1.content
+        # We are only passing one message while encryping.
+        # Get the first one only.
+        decrypted_message = data.result.get('cleartexts')[0]
+        context = {
+            'decrypted_message': decrypted_message
+        }
+        return render(request, template_name, context)
 
 
 def send_periodically_mail(alice_email):

@@ -1,20 +1,11 @@
 from django.db import models
 
-# Create your models here.
-
 class UserSecret(models.Model):
-    alice_public_key = models.CharField("Alice Public Key", max_length=40, 
-                                        editable=False)
-    bob_public_key = models.CharField("Bob Public Key", max_length=40, 
-                                        editable=False)
-    alice_private_key = models.CharField("Alice Private Key", max_length=40, 
-                                        editable=False)
-    bob_private_key = models.CharField("Bob Private Key", max_length=40, 
-                                        editable=False)
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     policy_encrypting_key = models.CharField("Alice policy Privacy encryption key", 
                                              max_length=100)
     label = models.CharField("Policy Label to identify", max_length=10)
-    capsule = models.TextField("Capsule/MessageKit")
+    message_kit = models.TextField("MessageKit")
 
     class Meta:
         verbose_name = "User secret"
@@ -22,6 +13,7 @@ class UserSecret(models.Model):
 
 
 class UserNextKin(models.Model):
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     bob_email_address = models.EmailField("Bob Email Address", editable=False)
     bob_public_address = models.CharField("Bob Public Address", 
                                           editable=False, 

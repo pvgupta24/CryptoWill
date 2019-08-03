@@ -10,3 +10,7 @@ SECRET_KEY = 'Your secret key here'
 DEBUG = False
 
 ALLOWED_HOSTS = []
+
+# Specify these keys by running bob locally
+BOB_ENCRYPTING_KEY = ""
+BOB_VERIFYING_KEY = ""
