@@ -19,7 +19,7 @@ class UserNextKin(models.Model):
     bob_public_address = models.CharField("Bob Public Address", 
                                           editable=False, 
                                           max_length=40)
-    ipfs_address = models.TextField("IPFS Hash")
+    ipfs_address = models.TextField("IPFS Hash", null=True, blank=True)
 
     class Meta:
         verbose_name = "User's next of kin"

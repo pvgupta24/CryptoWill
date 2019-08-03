@@ -1,6 +1,6 @@
 import requests
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views import View
 from django.core.mail import send_mail
 from django.conf import settings
@@ -96,23 +96,31 @@ class AddKinView(View):
     """
     Alice submit's next of keen's email and public-key GET page
     """
+    def get(self, request):
+        return redirect('add_key')
+
     def post(self, request):
         # Not doing anything with Nucypher here. Just store and move.
         template_name = 'add-kin.html'
         form = UserNextKinForm(request.POST)
         if form.is_valid():
             template_name = 'index.html'
-            form.save()  # save bob's details to db for given user
+            # save bob's details to db for given user
+            UserNextKin.objects.create(
+                user=request.user,
+                bob_email_address=form.data['bob_email_address'],
+                bob_public_address=form.data['bob_public_address']
+            )
             context = {
                 'message': "Congratulations! We have added your kin's details. \
                             Now we'll send you periodically email. Make sure \
                             to click on the link provided in the email to \
                             avoid granting access to your kin. If you fail so \
-                            clicking on the link, we'll grant access to your \
-                            kin and you kin will able to decrypt the message."
+                            clicking on the link, we'll grant access of your\
+                            keys to mentioned kin."
             }
             return render(request, template_name, context)
-
+        print(form.errors)
         context = {
             "form": form
         }

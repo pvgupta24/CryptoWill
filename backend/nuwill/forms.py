@@ -12,4 +12,4 @@ class UserNextKinForm(forms.Form):
     bob_public_address = forms.CharField(label="Bob's Public address", 
                                          max_length=40)
     ipfs_hash = forms.CharField(label='IPFS hash of the payload', 
-                                max_length=300)
+                                max_length=300, required=False)
