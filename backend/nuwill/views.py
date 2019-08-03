@@ -1,5 +1,13 @@
+import json
+import base64
+
 from django.shortcuts import render
 from django.views import View
+
+from umbral import pre, keys, signing, params
+from umbral import  config as uconfig
+
+from .forms import SecretForm
 
 
 class IndexView(View):
@@ -12,12 +20,33 @@ class IndexView(View):
         return render(request, template_name)
 
 
+# class SignupView(View):
+#     """
+#     Alice secures private key.
+#     Key is encrypted immediately and stored to database
+#     """
+#     pass
+
+
 class SignupView(View):
     """
     Alice secures private key.
     Key is encrypted immediately and stored to database
     """
-    pass
+    def get(self, request):
+        form = SecretForm(request.form)
+        template_name = "signup.html"
+        return render(request, template_name, form=form)
+
+    def post(self, request):
+        template_name = "signup.html"
+        form = SecretForm(request.form)
+        if form.is_validate():
+            # Do some Nucypher stuff
+            template_name = "roll.html"
+            pass
+            return render(request, template_name, form=form)
+        return render(request, template_name, form=form)
 
 
 class RollView(View):
