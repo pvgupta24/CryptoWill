@@ -11,6 +11,10 @@ class UserSecret(models.Model):
                                         editable=False)
     bob_private_key = models.CharField("Bob Private Key", max_length=40, 
                                         editable=False)
+    policy_encrypting_key = models.CharField("Alice policy Privacy encryption key", 
+                                             max_length=100)
+    label = models.CharField("Policy Label to identify", max_length=10)
+    capsule = models.TextField("Capsule/MessageKit")
 
     class Meta:
         verbose_name = "User secret"
