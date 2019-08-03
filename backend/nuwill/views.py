@@ -1,5 +1,4 @@
 import json
-import base64
 import requests
 
 from django.shortcuts import render
@@ -7,31 +6,19 @@ from django.views import View
 from django.core.mail import send_mail
 from django.conf import settings
 
-from umbral import pre, keys, signing, params
-from umbral import  config as uconfig
-
 from .forms import SecretForm, UserNextKinForm
 
 
 class IndexView(View):
     """
-    Landing page for Alice and login with Torus
+    Landing page for Alice and login with Django Admin
     """
-
     def get(self, request):
         template_name = "index.html"
         return render(request, template_name)
 
 
-# class SignupView(View):
-#     """
-#     Alice secures private key.
-#     Key is encrypted immediately and stored to database
-#     """
-#     pass
-
-
-class SignupView(View):
+class AddKeyView(View):
     """
     Alice secures private key.
     Key is encrypted immediately and stored to database
@@ -86,7 +73,7 @@ class SignupView(View):
         return render(request, template_name, form=form)
 
 
-class RollView(View):
+class AddKinView(View):
     """
     Alice submit's next of keen's email and public-key GET page
     """
@@ -105,7 +92,7 @@ class RollView(View):
         return render(request, template_name, context)
 
 
-class DelegateView(View):
+class GrantView(View):
     """
     Alice failed to confirm email link and thus delegation takes place
     Called internally by the triggers

@@ -1,11 +1,10 @@
 from django.urls import path
-from .views import IndexView, SignupView, RollView, DelegateView, \
-    DecryptView
+from .views import IndexView, AddKinView, GrantView, \
+    AddKeyView, DecryptView
 
 urlpatterns = [
-    path('submit/', SignupView.as_view(), name='signup'),
-    path('roll', RollView.as_view(), name='roll'),
-    path('delegate', DelegateView.as_view(), name='delegate'),
-    path('decrypt', DecryptView.as_view(), name='decrypt'),
-    # path('api/v1/store', StoreView.as_view(), name='store'),
+    path('add-key/', AddKeyView.as_view(), name='add_key'),
+    path('add-kin', AddKinView.as_view(), name='add_kin'),
+    path('grant-kin', GrantView.as_view(), name='grant_kin'),
+    path('decrypt-key', DecryptView.as_view(), name='decrypt_key'),
 ]
