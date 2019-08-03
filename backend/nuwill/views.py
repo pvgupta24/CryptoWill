@@ -36,13 +36,16 @@ class SignupView(View):
     Key is encrypted immediately and stored to database
     """
     def get(self, request):
-        form = SecretForm(request.form)
+        form = SecretForm()
         template_name = "signup.html"
-        return render(request, template_name, form=form)
+        context = {
+            'form': form
+        }
+        return render(request, template_name, context)
 
     def post(self, request):
         template_name = "signup.html"
-        form = SecretForm(request.form)
+        form = SecretForm(request.POST)
         if form.is_validate():
             template_name = "roll.html"
 
@@ -112,7 +115,7 @@ class DelegateView(View):
 class DecryptView(View):
     """
     Bob submits Alice's IPFS payload and we decrypt it for him.
-    Only once!
+    Only once! It can be requested only once and also decrypted only once.
     """
     def get(self, request):
         template_name = "decrypt_page.html"

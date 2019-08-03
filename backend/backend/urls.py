@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
 
 from nuwill import urls
 from nuwill.views import IndexView
@@ -24,3 +25,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('nuwill/', include(urls.urlpatterns))
 ]
+
+if settings.DEBUG:
+    print("hello world")
+    from django.conf.urls.static import static
+
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_URL)
+
