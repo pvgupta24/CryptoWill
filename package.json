@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@toruslabs/torus-embed": "0.0.24",
     "bootstrap": "^3.3.7",
     "fs-extra": "^5.0.0",
     "ipfs-api": "^18.1.1",
