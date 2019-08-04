@@ -7,6 +7,8 @@ class UserSecret(models.Model):
     label = models.CharField("Policy Label to identify", max_length=10)
     # Tobe removed in the next release and use IPFS
     message_kit = models.TextField("MessageKit")
+    alice_verifying_key = models.CharField("Alice verifying key",
+                                           max_length=40)
 
     class Meta:
         verbose_name = "User secret"

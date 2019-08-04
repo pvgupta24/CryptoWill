@@ -1,1 +1,37 @@
 {% extends 'partials/base.html' %}
+
+{% block content %}
+  <!-- Contact Section -->
+  <section class="page-section" id="contact">
+        <div class="container">
+          <!-- Contact Section Heading -->
+          <h2 class="page-section-heading text-center text-uppercase text-secondary mb-0">
+                Congratulations! You have been granted to access private key from {{request.user}}.
+            </h2>
+
+          <!-- Icon Divider -->
+          <div class="divider-custom">
+            <div class="divider-custom-line"></div>
+            <div class="divider-custom-icon">
+              <i class="fas fa-star"></i>
+            </div>
+            <div class="divider-custom-line"></div>
+          </div>
+
+            <div class="text-center mt-4">
+              <form name="sentMessage" id="contactForm" novalidate="novalidate" method="POST">
+                {% csrf_token %}
+                <br>
+                <div id="success"></div>
+                <div class="form-group">
+                  <button type="submit" class="btn btn-primary btn-xl" id="sendMessageButton">Yes! I'm in.</button>
+                </div>
+              </form>
+          </div>
+
+        </div>
+      </section>
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}

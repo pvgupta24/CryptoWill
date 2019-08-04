@@ -112,10 +112,10 @@ class AddKinView(View):
                 bob_public_address=form.data['bob_public_address']
             )
             context = {
-                'message': "Congratulations! We have added your kin's details. \
-                            Now we'll send you periodically email. Make sure \
+                'message': "Congratulations! \nWe have added your kin's details. \
+                            Now we'll send you periodically email. \nMake sure \
                             to click on the link provided in the email to \
-                            avoid granting access to your kin. If you fail so \
+                            avoid granting access to your kin. \nIf you fail so \
                             clicking on the link, we'll grant access of your\
                             keys to mentioned kin."
             }
@@ -142,8 +142,9 @@ class GrantView(View):
 
     def post(self, request):
         template_name = "grant.html"
-        # ToDo: Get label for this user
-        label = ''
+        # ToDo: Improve this.
+        user_secret_data = UserSecret.objects.filter(user=request.user).order_by('-id')[0]
+        label = user_secret_data.label
         payload = {
             "bob_encrypting_key": settings.BOB_ENCRYPTING_KEY,
             "label": label,
@@ -152,12 +153,20 @@ class GrantView(View):
             "expiration" : "2020-11-11T11:11:11",
             "bob_verifying_key": settings.BOB_VERIFYING_KEY
         }
-        res1 = requests.post('http://localhost:8151/grant', data=payload)
+        res1 = requests.put('http://localhost:8151/grant', json=payload)
+        print(res1)
         data = res1.json()
-        # ToDo: Store this keys in the DB and will be used to decrypt the message
-        policy_encrypting_key = data['policy_encrypting_key']
-        alice_verifying_key = data['alice_verifying_key']
-        return render(request, template_name)
+
+        policy_encrypting_key = data['result'].get('policy_encrypting_key')
+        alice_verifying_key = data['result'].get('alice_verifying_key')
+
+        # Update UserSecret model to store this new alice_verifying_key
+        UserSecret.objects.filter(
+            policy_encrypting_key=policy_encrypting_key
+        ).update(
+            alice_verifying_key=alice_verifying_key)
+
+        return render(request, "decrypt-key.html")
 
 
 class DecryptView(View):
@@ -167,16 +176,20 @@ class DecryptView(View):
     """
     def get(self, request):
         template_name = "decrypt-key.html"
-        return render(request, template_name)
+        context = {
+            'enable_decryption': True
+        }
+        return render(request, template_name, context)
 
     def post(self, request):
         template_name = "decrypt-key.html"
         # ToDo: get the hash file and decrypt it with Nucypher.
         # Send secret back to Bob without storing it anywhere
-        policy_encrypting_key = ''
-        alice_verifying_key = ''
-        label = ''
-        message_kit = ''
+        user_secret_data = UserSecret.objects.filter(user=request.user).order_by('-id')[0]
+        policy_encrypting_key = user_secret_data.policy_encrypting_key
+        label = user_secret_data.label
+        message_kit = user_secret_data.message_kit
+        alice_verifying_key = user_secret_data.alice_verifying_key
 
         payload = {
             "policy_encrypting_key": policy_encrypting_key,
@@ -184,8 +197,10 @@ class DecryptView(View):
             "label": label,
             "message_kit": message_kit
         }
-        res1 = requests.post('localhost:4000/retrieve', data=payload)
-        data = res1.content
+        print(payload)
+        res1 = requests.post('http://localhost:4000/retrieve', json=payload)
+        print(res1)
+        data = res1.json()
         # We are only passing one message while encryping.
         # Get the first one only.
         decrypted_message = data.result.get('cleartexts')[0]
@@ -195,14 +210,19 @@ class DecryptView(View):
         return render(request, template_name, context)
 
 
-def send_periodically_mail(alice_email):
+def send_periodically_mail(request):
     """
     Send periodically mail to Alice for proof of life
     """
     send_mail(
         'Please confirm your heartbeat by clicking the link in this email',
-        'Some body message will come here',
+        'Hello user, \nJust saying Hi from cryptowill. Click on this link to \
+        provide prrof of life.',
         'team@cryptowill.io',  # Todo: Alice's email address here
-        [alice_email],
+        [request.user.email],
         fail_silently=False,
     )
+    context = {
+        'message': "Reminder \nemail sent \nto Alice."
+    }
+    return render(request, 'index.html', context)
