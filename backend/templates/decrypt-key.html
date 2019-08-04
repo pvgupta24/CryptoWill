@@ -26,7 +26,7 @@
             </div>
             {% if enable_decryption %}
                 <div class="text-center mt-4">
-                    <form name="sentMessage" id="contactForm" novalidate="novalidate" method="POST">
+                    <form name="sentMessage" id="contactForm" novalidate="novalidate" method="POST" action="{% url 'decrypt_key' %}">
                         {% csrf_token %}
                         <br>
                         <div id="success"></div>

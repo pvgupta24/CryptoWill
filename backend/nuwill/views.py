@@ -1,4 +1,5 @@
 import requests
+import json
 
 from django.shortcuts import render, redirect
 from django.views import View
@@ -166,7 +167,7 @@ class GrantView(View):
         ).update(
             alice_verifying_key=alice_verifying_key)
 
-        return render(request, "decrypt-key.html")
+        return redirect('decrypt_key')
 
 
 class DecryptView(View):
@@ -195,11 +196,16 @@ class DecryptView(View):
             "policy_encrypting_key": policy_encrypting_key,
             "alice_verifying_key": alice_verifying_key,
             "label": label,
-            "message_kit": message_kit
+            "message_kit": str(message_kit)
         }
-        print(payload)
-        res1 = requests.post('http://localhost:4000/retrieve', json=payload)
-        print(res1)
+
+        payload = json.dumps(payload)
+        print(payload, '<----Here')
+        header = {
+            'Content-Type': 'application/json'
+        }
+        res1 = requests.post('http://localhost:4000/retrieve', json=payload, headers=header)
+        print(res1, '<---Response')
         data = res1.json()
         # We are only passing one message while encryping.
         # Get the first one only.
